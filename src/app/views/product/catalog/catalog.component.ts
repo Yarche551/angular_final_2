@@ -177,10 +177,8 @@ export class CatalogComponent implements OnInit {
   }
 
   removeAllAppliedFilters() {
-    this.activeParams.types = [];
-    this.activeParams.page = 1;
     this.router.navigate(['/catalog'], {
-      queryParams: this.activeParams
+      queryParams: {sort: this.activeParams.sort}
     });
   }
 
