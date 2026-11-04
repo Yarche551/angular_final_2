@@ -7,7 +7,7 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {ActiveParamsUtil} from "../../../shared/utils/active-params.util";
 import {ActiveParamsType} from "../../../../types/active-params.type";
 import {AppliedFilterType} from "../../../../types/applied-filter.type";
-import {debounceTime} from "rxjs";
+import {debounceTime, forkJoin} from "rxjs";
 import {CartService} from "../../../shared/services/cart.service";
 import {CartType} from "../../../../types/cart.type";
 import {FavoriteService} from "../../../shared/services/favorite.service";
@@ -47,36 +47,27 @@ export class CatalogComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.cartService.getCart()
-      .subscribe((data: CartType | DefaultResponseType) => {
-        if ((data as DefaultResponseType).error !== undefined) {
-          throw new Error((data as DefaultResponseType).message);
-        }
+    if (this.authService.getIsLoggedIn()) {
+      this.favoriteService.getFavorites()
+        .subscribe(
+          {
+            next: (data: FavoriteType[] | DefaultResponseType) => {
+              if ((data as DefaultResponseType).error !== undefined) {
+                const error = (data as DefaultResponseType).message;
+                this.processCatalog();
+                throw new Error(error);
+              }
 
-        this.cart = data as CartType;
-
-        if (this.authService.getIsLoggedIn()) {
-          this.favoriteService.getFavorites()
-            .subscribe(
-              {
-                next: (data: FavoriteType[] | DefaultResponseType) => {
-                  if ((data as DefaultResponseType).error !== undefined) {
-                    const error = (data as DefaultResponseType).message;
-                    this.processCatalog();
-                    throw new Error(error);
-                  }
-
-                  this.favoriteProducts = data as FavoriteType[];
-                  this.processCatalog();
-                },
-                error: (error) => {
-                  this.processCatalog();
-                }
-              });
-        } else {
-          this.processCatalog();
-        }
-      });
+              this.favoriteProducts = data as FavoriteType[];
+              this.processCatalog();
+            },
+            error: (error) => {
+              this.processCatalog();
+            }
+          });
+    } else {
+      this.processCatalog();
+    }
   }
 
   processCatalog() {
@@ -128,8 +119,14 @@ export class CatalogComponent implements OnInit {
                 urlParam: 'diameterTo'
               });
             }
-            this.productService.getProducts(this.activeParams)
-              .subscribe(data => {
+            // Корзину запрашиваем заново вместе с товарами: карточки меняют её сами, без участия каталога
+            forkJoin({
+              data: this.productService.getProducts(this.activeParams),
+              cart: this.cartService.getCart()
+            })
+              .subscribe(({data, cart}) => {
+                this.cart = (cart as DefaultResponseType).error !== undefined ? null : cart as CartType;
+
                 this.pages = [];
                 for (let i = 1; i <= data.pages; i++) {
                   this.pages.push(i);
