@@ -6,6 +6,7 @@ import {CategoryWithTypeType} from "../../../types/category-with-type.type";
 @Component({
   selector: 'app-layout',
   templateUrl: './layout.component.html',
+  styleUrls: ['./layout.component.scss']
 })
 export class LayoutComponent implements OnInit {
   categories: CategoryWithTypeType[] = [];
