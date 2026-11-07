@@ -201,9 +201,11 @@ export class CatalogComponent implements OnInit {
     });
   }
 
+  // Без page в адресе (ссылка «Каталог», сброс фильтров) открыта первая страница
   openPrevPage() {
-    if (this.activeParams.page && this.activeParams.page > 1) {
-      this.activeParams.page--;
+    const page = this.activeParams.page || 1;
+    if (page > 1) {
+      this.activeParams.page = page - 1;
       this.router.navigate(['/catalog'], {
         queryParams: this.activeParams
       });
@@ -211,8 +213,9 @@ export class CatalogComponent implements OnInit {
   }
 
   openNextPage() {
-    if (this.activeParams.page && this.activeParams.page < this.pages.length) {
-      this.activeParams.page++;
+    const page = this.activeParams.page || 1;
+    if (page < this.pages.length) {
+      this.activeParams.page = page + 1;
       this.router.navigate(['/catalog'], {
         queryParams: this.activeParams
       });
