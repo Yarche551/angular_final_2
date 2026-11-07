@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, HostListener, OnInit} from '@angular/core';
 import {ProductService} from "../../../shared/services/product.service";
 import {ProductType} from "../../../../types/product.type";
 import {CategoryService} from "../../../shared/services/category.service";
@@ -184,6 +184,13 @@ export class CatalogComponent implements OnInit {
 
   toggleSorting() {
     this.sortingOpen = !this.sortingOpen;
+  }
+
+  @HostListener('document:click', ['$event'])
+  click(event: Event) {
+    if (this.sortingOpen && !(event.target as HTMLElement).closest('.catalog-sorting')) {
+      this.sortingOpen = false;
+    }
   }
 
   sort(value: string) {
