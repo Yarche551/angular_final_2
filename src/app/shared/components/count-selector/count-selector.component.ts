@@ -18,6 +18,9 @@ export class CountSelectorComponent implements OnInit {
   }
 
   countChange() {
+    // Из поля ввода приходит строка: оставляем только целое число от 1
+    const count = Math.floor(Number(this.count));
+    this.count = count > 0 ? count : 1;
     this.onCountChange.emit(this.count);
   }
 
